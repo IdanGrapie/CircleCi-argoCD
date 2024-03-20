@@ -10,7 +10,7 @@ def is_site_reachable(url, timeout=5):
 
 class TestWebsiteAvailability(unittest.TestCase):
     def test_site_reachable(self):
-        self.assertTrue(is_site_reachable("http://web:80))
+        self.assertTrue(is_site_reachable("http://web:80"))
 
 
 if __name__ == '__main__':
