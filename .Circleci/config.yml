@@ -1,21 +1,35 @@
 version: 2.1
 
 jobs:
-  build:
+  lint_and_scan:
     docker:
-      - image: circleci/python:3.8  # Or whichever Python version you need
+      - image: circleci/python:3.8  # Use an image with Docker installed
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 19.03.13  # Use Docker version 19.03.13 or later
       - run:
-          name: Install Dependencies
-          command: pip install -r requirements.txt  # Ensure flake8 is in your requirements
+          name: Install Hadolint
+          command: |
+            sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.18.0/hadolint-Linux-x86_64
+            sudo chmod +x /bin/hadolint
       - run:
-          name: Run Flake8
-          command: flake8 .
+          name: Dockerfile Linting
+          command: hadolint Dockerfile
+      - run:
+          name: Build Docker Image
+          command: docker build -t my-flask-app .
+      - run:
+          name: Install Trivy
+          command: |
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - run:
+          name: Docker Image Vulnerability Scanning
+          command: trivy image --severity HIGH,CRITICAL my-flask-app
 
 workflows:
   version: 2
-  build_and_test:
+  lint_scan_and_build:
     jobs:
-      - build
+      - lint_and_scan
 
